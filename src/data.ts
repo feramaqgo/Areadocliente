@@ -1,4 +1,8 @@
-import { Empresa, Usuario, Maquina, Chamado, ChamadoMensagem, ChamadoAnexo, Orcamento, Manual, Peca, Relatorio, Atualizacao, LogAtividade } from './types';
+import { Empresa, Usuario, Maquina, Chamado, ChamadoMensagem, ChamadoAnexo, Orcamento, Peca, Relatorio, LogAtividade } from './types';
+
+// Dados de demonstração. Manuais e Comunicados não aparecem mais aqui: já vêm
+// do Supabase (ver src/lib/api/). O restante segue mockado até a autenticação
+// de cliente existir — ver docs/INTEGRACAO_CRM.md.
 
 // Initial Mock Empresa
 export const mockEmpresas: Empresa[] = [
@@ -35,7 +39,7 @@ export const mockUsuarios: Usuario[] = [
     id: 'usr-2',
     nome: 'Julio Santos',
     email: 'julio.santos@construtoraprime.com.br',
-    serie_login: 'SN-9876543210',
+    serie_login: 'FQ-2023-047',
     telefone: '(11) 97777-6666',
     cargo: 'Operador de Campo',
     active: true,
@@ -44,23 +48,26 @@ export const mockUsuarios: Usuario[] = [
   },
   {
     id: 'usr-3',
-    nome: 'Vinicius Ferreira',
-    email: 'vinicius.ferreira@feramaq.com.br',
-    telefone: '(11) 99999-8888',
-    cargo: 'Suporte Técnico Feramaq',
+    nome: 'Renata Duarte',
+    email: 'renata.duarte@construtoraapex.com.br',
+    serie_login: 'FQ-2025-003',
+    telefone: '(41) 96666-5555',
+    cargo: 'Coordenadora de Obras',
     active: true,
-    role: 'suporte_tecnico',
+    role: 'cliente_admin',
     empresa_id: 'emp-2'
   }
 ];
 
 // Initial Mock Machines
+// As specs variam por linha de produto, então ficam num mapa aberto em vez de
+// colunas fixas (mesma abordagem de products.specs no CRM).
 export const mockMaquinas: Maquina[] = [
   {
     id: 'maq-1',
     serie: 'FQ-2024-001',
-    modelo: 'Bomba de Concreto B-450',
-    linha: 'Série B - Premium',
+    modelo: 'Bomba de Concreto FMA 1000-62',
+    linha: 'FMA',
     ano_fabricacao: 2024,
     data_compra: '2024-01-15',
     status: 'Operacional',
@@ -68,43 +75,51 @@ export const mockMaquinas: Maquina[] = [
     ultima_manutencao: '2026-04-10',
     localizacao: 'Obra Alfa, São Paulo - SP',
     garantia_ate: '2027-01-15',
-    imagem_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDup6kxTHQbN0ZHIe8Zjx1QOH19PpjSDm18BVVUnjKle8OKNK3TZaqhimIWD8D-VyaSYkhm1c_5dLvII3KNe83zfnQfUPjIHql7MT9OJk02uC3-2qRgLc5qXDaMp7WQHW2DPyrCKjRne9LRPmfmdv7lBhYswtE6cbZeMKWjxash-e-d3e-SLEFIH9SKYgCk2rekbv9gfo-ANl2qJ3KZFvRJKzcnK-jQGNH-KaPrWeMaoLtUL8h9qM6qdtU9iN4_yOHsnePVoCiTZ53P',
+    imagem_url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600',
     fabricante: 'Feramaq Industrial',
     potencia_motor: '150 kW',
-    rotacao_maxima: '2200 RPM',
-    diametro_torneamento: 'N/A',
-    comprimento_maximo: 'N/A',
-    comando_numerico: 'Smart Control V2',
     peso_bruto: '5200 kg',
+    specs: {
+      'Vazão teórica': '62 m³/h',
+      'Pressão no concreto': '70 bar',
+      'Alcance vertical': '30 m',
+      'Alcance horizontal': '26 m',
+      'Diâmetro da tubulação': '125 mm',
+      'Capacidade do funil': '600 L'
+    },
     empresa_id: 'emp-1'
   },
   {
     id: 'maq-2',
-    serie: 'SN-9876543210',
-    modelo: 'Torno CNC X-2000 Pro',
-    linha: 'Série X - Metalurgia',
-    ano_fabricacao: 2022,
-    data_compra: '2022-03-15',
+    serie: 'FQ-2023-047',
+    modelo: 'Bomba de Concreto FME 2000-90',
+    linha: 'FME',
+    ano_fabricacao: 2023,
+    data_compra: '2023-03-15',
     status: 'Operacional',
     horimetro: 3450,
     ultima_manutencao: '2026-05-12',
-    localizacao: 'Galpão Central, Curitiba - PR',
-    garantia_ate: '2025-03-15', // Inativa
-    imagem_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC3CJmJGxYHTj1itil_qVdSVZ0cLYjvx6IxgYHcmqg98EHSwiDioQx1xWUXEU2DwLyVXW0VucWONTFw5Oeh7uW8FnQBoir5-f92x0PEboRgffhur94RqNOyWWoKkkZjbK-dXak4e2mo9lA3qSB6LoNcU-llyXE3NYHBIKJhB11FH_vHcBrqFcNfXJJaoXCPOw1mgrxeAMgdqSGFynai7mpvZVUKoXNZC0rh3PQzZ5WWvVhmvhKghi7gs73jv_AnKdcTrK17PPhrvMli',
+    localizacao: 'Obra Beta, Curitiba - PR',
+    garantia_ate: '2026-03-15',
+    imagem_url: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&q=80&w=600',
     fabricante: 'Feramaq Industrial',
-    potencia_motor: '15 kW',
-    rotacao_maxima: '4500 RPM',
-    diametro_torneamento: '350 mm',
-    comprimento_maximo: '1200 mm',
-    comando_numerico: 'Siemens Sinumerik',
-    peso_bruto: '4500 kg',
+    potencia_motor: '186 kW',
+    peso_bruto: '7100 kg',
+    specs: {
+      'Vazão teórica': '90 m³/h',
+      'Pressão no concreto': '85 bar',
+      'Alcance vertical': '42 m',
+      'Alcance horizontal': '38 m',
+      'Diâmetro da tubulação': '150 mm',
+      'Capacidade do funil': '800 L'
+    },
     empresa_id: 'emp-1'
   },
   {
     id: 'maq-3',
-    serie: 'FRMQ-9982',
-    modelo: 'Misturador Industrial M-200',
-    linha: 'Série M - Misturadores',
+    serie: 'FQ-2023-112',
+    modelo: 'Perfuratriz Hidráulica FMCT 25-080',
+    linha: 'FMCT',
     ano_fabricacao: 2023,
     data_compra: '2023-08-20',
     status: 'Aguardando Peça',
@@ -112,21 +127,24 @@ export const mockMaquinas: Maquina[] = [
     ultima_manutencao: '2026-03-01',
     localizacao: 'Porto Seco, Santos - SP',
     garantia_ate: '2026-08-20',
-    imagem_url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600',
+    imagem_url: 'https://images.unsplash.com/photo-1579684389782-64d84b5e901a?auto=format&fit=crop&q=80&w=600',
     fabricante: 'Feramaq Industrial',
-    potencia_motor: '45 kW',
-    rotacao_maxima: '1500 RPM',
-    diametro_torneamento: 'N/A',
-    comprimento_maximo: 'N/A',
-    comando_numerico: 'Logic Controller',
+    potencia_motor: '129 kW',
     peso_bruto: '3200 kg',
+    specs: {
+      'Profundidade máxima': '80 m',
+      'Diâmetro de perfuração': '110 mm',
+      'Torque de rotação': '4.200 Nm',
+      'Força de avanço': '65 kN',
+      'Pressão hidráulica': '210 bar'
+    },
     empresa_id: 'emp-1'
   },
   {
     id: 'maq-4',
-    serie: 'VMC-1000',
-    modelo: 'Centro de Usinagem Vertical VMC-1000 CNC',
-    linha: 'Série VMC - Centros de Usinagem',
+    serie: 'FQ-2024-088',
+    modelo: 'Bomba de Concreto FMCM 3000-85',
+    linha: 'FMCM',
     ano_fabricacao: 2024,
     data_compra: '2024-05-10',
     status: 'Em Manutenção',
@@ -134,37 +152,73 @@ export const mockMaquinas: Maquina[] = [
     ultima_manutencao: '2026-06-24',
     localizacao: 'Obra Alfa, São Paulo - SP',
     garantia_ate: '2027-05-10',
-    imagem_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDb9K6flu7oteRe5qU8y1x3mJAbh39V6C3VtU8VBB5EhDQt7GxRKhoQbt6BFBPyVOVefnm1VBnomaYFR-MdMo0QkMnxyk2vuJ5d7v8y7eK67O-wMoNcj45YRQquYGKqN3WSM4HGv8kCxmNDOXQ9qk52pFe-ySZcbv0cixLVJrphEdnrK7nd_UZaHcxqXkt1y5P99nj3wafWqIZy0D6jfP8_2bJ7y58E6VEEpYFsUjftFt4gyi8d1zAfjyxqa20PnwN0FjUzZVJ5vDmT',
+    imagem_url: 'https://images.unsplash.com/photo-1590496793929-36417d3117de?auto=format&fit=crop&q=80&w=600',
     fabricante: 'Feramaq Industrial',
-    potencia_motor: '22 kW',
-    rotacao_maxima: '8000 RPM',
-    diametro_torneamento: '500 mm',
-    comprimento_maximo: '1000 mm',
-    comando_numerico: 'Fanuc Series',
+    potencia_motor: '164 kW',
     peso_bruto: '6800 kg',
+    specs: {
+      'Vazão teórica': '85 m³/h',
+      'Pressão no concreto': '80 bar',
+      'Alcance vertical': '36 m',
+      'Alcance horizontal': '32 m',
+      'Diâmetro da tubulação': '125 mm',
+      'Capacidade do funil': '700 L'
+    },
     empresa_id: 'emp-1'
   },
   {
     id: 'maq-5',
-    serie: 'FX-2023-012A',
-    modelo: 'Escavadeira X-200',
-    linha: 'FX Excavators',
-    ano_fabricacao: 2023,
-    data_compra: '2023-04-12',
+    serie: 'FQ-2022-019',
+    modelo: 'Perfuratriz Hidráulica FML 30-100',
+    linha: 'FML',
+    ano_fabricacao: 2022,
+    data_compra: '2022-04-12',
     status: 'Desativada',
     horimetro: 4200,
     ultima_manutencao: '2025-11-15',
     localizacao: 'Galpão Central, Curitiba - PR',
     garantia_ate: '2025-04-12',
-    imagem_url: 'https://images.unsplash.com/photo-1579684389782-64d84b5e901a?auto=format&fit=crop&q=80&w=600',
+    imagem_url: 'https://images.unsplash.com/photo-1621922688758-359fc864071e?auto=format&fit=crop&q=80&w=600',
     fabricante: 'Feramaq Industrial',
     potencia_motor: '110 kW',
-    rotacao_maxima: '1800 RPM',
-    diametro_torneamento: 'N/A',
-    comprimento_maximo: 'N/A',
-    comando_numerico: 'Hydraulic Assist',
     peso_bruto: '8900 kg',
+    specs: {
+      'Profundidade máxima': '100 m',
+      'Diâmetro de perfuração': '152 mm',
+      'Torque de rotação': '6.800 Nm',
+      'Força de avanço': '90 kN',
+      'Pressão hidráulica': '250 bar'
+    },
     empresa_id: 'emp-1'
+  },
+  {
+    // Equipamento de OUTRA empresa: existe no mock justamente para provar que o
+    // Portal não vaza dado entre clientes. Logado como emp-1, isto não pode
+    // aparecer em nenhuma tela.
+    id: 'maq-6',
+    serie: 'FQ-2025-003',
+    modelo: 'Bomba de Concreto FMA 1000-62',
+    linha: 'FMA',
+    ano_fabricacao: 2025,
+    data_compra: '2025-02-08',
+    status: 'Operacional',
+    horimetro: 310,
+    ultima_manutencao: '2026-05-30',
+    localizacao: 'Obra Apex Norte, Londrina - PR',
+    garantia_ate: '2028-02-08',
+    imagem_url: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600',
+    fabricante: 'Feramaq Industrial',
+    potencia_motor: '150 kW',
+    peso_bruto: '5200 kg',
+    specs: {
+      'Vazão teórica': '62 m³/h',
+      'Pressão no concreto': '70 bar',
+      'Alcance vertical': '30 m',
+      'Alcance horizontal': '26 m',
+      'Diâmetro da tubulação': '125 mm',
+      'Capacidade do funil': '600 L'
+    },
+    empresa_id: 'emp-2'
   }
 ];
 
@@ -180,7 +234,7 @@ export const mockChamados: Chamado[] = [
     urgencia: 'Urgente',
     maquina_id: 'maq-1',
     maquina_serie: 'FQ-2024-001',
-    maquina_modelo: 'Bomba de Concreto B-450',
+    maquina_modelo: 'Bomba de Concreto FMA 1000-62',
     criado_em: '2026-06-23T14:30:00Z',
     atualizado_em: '2026-06-24T09:15:00Z',
     id_externo: 'EXT-CH-8921',
@@ -189,14 +243,14 @@ export const mockChamados: Chamado[] = [
   {
     id: 'ch-2',
     codigo: '#CH-8919',
-    titulo: 'Vazamento de fluido hidráulico na base',
-    descricao: 'Vazamento de óleo no motor hidráulico de rotação da hélice do misturador. O equipamento perdeu torque e está paralisado para evitar danos.',
+    titulo: 'Perda de torque na rotação da perfuratriz',
+    descricao: 'Vazamento de óleo no motor hidráulico de rotação. O equipamento perdeu torque e está paralisado para evitar danos maiores ao conjunto.',
     categoria: 'Hidráulica',
     status: 'Aguardando Peça',
     urgencia: 'Normal',
     maquina_id: 'maq-3',
-    maquina_serie: 'FRMQ-9982',
-    maquina_modelo: 'Misturador Industrial M-200',
+    maquina_serie: 'FQ-2023-112',
+    maquina_modelo: 'Perfuratriz Hidráulica FMCT 25-080',
     criado_em: '2026-06-22T09:15:00Z',
     atualizado_em: '2026-06-23T11:20:00Z',
     id_externo: 'EXT-CH-8919',
@@ -212,7 +266,7 @@ export const mockChamados: Chamado[] = [
     urgencia: 'Normal',
     maquina_id: 'maq-1',
     maquina_serie: 'FQ-2024-001',
-    maquina_modelo: 'Bomba de Concreto B-450',
+    maquina_modelo: 'Bomba de Concreto FMA 1000-62',
     criado_em: '2026-06-15T11:20:00Z',
     atualizado_em: '2026-06-16T17:45:00Z',
     id_externo: 'EXT-CH-8890',
@@ -220,15 +274,15 @@ export const mockChamados: Chamado[] = [
   },
   {
     id: 'ch-4',
-    codigo: '#CH-2023-1042',
-    titulo: 'Falha no Eixo Árvore durante usinagem pesada',
-    descricao: 'Durante a operação do turno da noite, a máquina apresentou forte vibração e ruído anormal vindo do cabeçote principal. Paralisamos a produção por segurança.',
-    categoria: 'Manutenção Corretiva',
+    codigo: '#CH-2026-1042',
+    titulo: 'Vibração anormal no conjunto de bombeamento',
+    descricao: 'Durante a concretagem do turno da noite, o equipamento apresentou forte vibração e ruído anormal vindo do conjunto de bombeamento. Paralisamos a operação por segurança.',
+    categoria: 'Manutenção',
     status: 'Em Atendimento',
     urgencia: 'Urgente',
     maquina_id: 'maq-4',
-    maquina_serie: 'VMC-1000',
-    maquina_modelo: 'Centro de Usinagem Vertical VMC-1000 CNC',
+    maquina_serie: 'FQ-2024-088',
+    maquina_modelo: 'Bomba de Concreto FMCM 3000-85',
     criado_em: '2026-06-23T08:30:00Z',
     atualizado_em: '2026-06-24T14:30:00Z',
     id_externo: 'EXT-CH-1042',
@@ -236,18 +290,35 @@ export const mockChamados: Chamado[] = [
   },
   {
     id: 'ch-5',
-    codigo: '#CH-2023-894',
-    titulo: 'Falha na calibração do eixo Z - Torno CNC Master',
-    descricao: 'Eixo Z está apresentando desvio de medida acumulado após 2 horas de operação contínua. Solicitamos ajuste ou revisão dos encoders lineares.',
-    categoria: 'Elétrica',
+    codigo: '#CH-2026-894',
+    titulo: 'Oscilação de pressão na linha de concreto',
+    descricao: 'A pressão na linha oscila acima do esperado após cerca de 2 horas de operação contínua. Solicitamos revisão das válvulas de controle e do sensor de pressão.',
+    categoria: 'Hidráulica',
     status: 'Em Atendimento',
     urgencia: 'Urgente',
     maquina_id: 'maq-2',
-    maquina_serie: 'SN-9876543210',
-    maquina_modelo: 'Torno CNC X-2000 Pro',
+    maquina_serie: 'FQ-2023-047',
+    maquina_modelo: 'Bomba de Concreto FME 2000-90',
     criado_em: '2026-06-24T10:45:00Z',
     atualizado_em: '2026-06-24T10:45:00Z',
     id_externo: 'EXT-CH-894',
+    origem: 'PORTAL_CLIENTE'
+  },
+  {
+    // Chamado de outra empresa (emp-2) — não pode aparecer para emp-1.
+    id: 'ch-6',
+    codigo: '#CH-2026-1103',
+    titulo: 'Agendamento de revisão preventiva de 300 horas',
+    descricao: 'Solicitamos agendamento da revisão preventiva de 300 horas conforme plano de manutenção do equipamento.',
+    categoria: 'Manutenção',
+    status: 'Aberto',
+    urgencia: 'Normal',
+    maquina_id: 'maq-6',
+    maquina_serie: 'FQ-2025-003',
+    maquina_modelo: 'Bomba de Concreto FMA 1000-62',
+    criado_em: '2026-06-25T13:05:00Z',
+    atualizado_em: '2026-06-25T13:05:00Z',
+    id_externo: 'EXT-CH-1103',
     origem: 'PORTAL_CLIENTE'
   }
 ];
@@ -259,25 +330,23 @@ export const mockMensagens: ChamadoMensagem[] = [
     chamado_id: 'ch-4',
     usuario_nome: 'Julio Santos',
     usuario_avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
-    mensagem: 'Durante a operação do turno da noite, a máquina apresentou forte vibração e ruído anormal vindo do cabeçote principal. Paralisamos a produção por segurança.',
+    mensagem: 'Durante a concretagem do turno da noite, o equipamento apresentou forte vibração e ruído anormal vindo do conjunto de bombeamento. Paralisamos a operação por segurança.',
     criado_em: '2026-06-23T08:30:00Z',
     tipo_usuario: 'cliente'
   },
   {
     id: 'msg-2',
     chamado_id: 'ch-4',
-    usuario_nome: 'Carlos Silva',
-    usuario_avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBDpL5qfE_sOezoHga_K9iu4CTvOh_xouc57mBm4iT8J80WJpee1TtWLmdm_lhDSH-BoxXyM8eEh0UywvBybxIP29YMXXkOzs845DCYjgfMsFkBRhGt5gdgtomLIQGuo_tk8BZaha93zItAHfWFaXNwfFm-J2tbVVIMGutJXIZtGJkmz2HYFbWQtKqhFxt0Rjm3r1CBBoWnz_HA7KL-FBZjH0_HfQ5y4D3BbDoeH5Sm0UClGAP1W8PtGLs6Sp9N5PSqvMKTCTJtrbi',
-    mensagem: 'Chamado direcionado para a equipe de Manutenção Especializada. Técnico responsável: Carlos Silva.',
+    usuario_nome: 'Suporte Feramaq',
+    mensagem: 'Chamado direcionado para a equipe de Manutenção Especializada. Técnico responsável: Vinicius Ferreira.',
     criado_em: '2026-06-23T09:15:00Z',
     tipo_usuario: 'suporte'
   },
   {
     id: 'msg-3',
     chamado_id: 'ch-4',
-    usuario_nome: 'Carlos Silva (Especialista CNC)',
-    usuario_avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuByx9Y5xXoobqxayXa4Mq0kkOO4IuA4kpThVmcIJnsCtidcqIVTWK5bTISp2R5tGKlDPTEb0COEcmrnDq1DfTNRATYho7xsC-NlkVDt80LoK76oSlfGJQXuimp76Y7BqKKLA0MiEPbeNcnfMmHUK0uT1NReZLWYStDsaJnIssnmEKJf6OFFeuyXuChIikC-vcQpQIKk3qjVC2heS2KuKr3l1NGPQj6qGdO9ZyhP9bc0tLncH1QR4LQSejBWrE1cKWbQycrZoLAxle_1',
-    mensagem: 'Diagnóstico concluído. Os rolamentos principais do eixo árvore apresentaram desgaste prematuro e superaquecimento. Foi solicitada a substituição imediata. O equipamento deve permanecer inoperante até a troca.',
+    usuario_nome: 'Vinicius Ferreira (Assistência Técnica)',
+    mensagem: 'Diagnóstico concluído. Os mancais do eixo de acionamento apresentaram desgaste prematuro e superaquecimento. Foi solicitada a substituição imediata. O equipamento deve permanecer inoperante até a troca.',
     criado_em: '2026-06-24T14:30:00Z',
     tipo_usuario: 'suporte'
   }
@@ -288,18 +357,18 @@ export const mockAnexos: ChamadoAnexo[] = [
   {
     id: 'anx-1',
     chamado_id: 'ch-4',
-    nome_arquivo: 'spindle_damage_1.jpg',
+    nome_arquivo: 'mancal_desgaste_1.jpg',
     tamanho_arquivo: '420 KB',
-    url_arquivo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDqZ4BKsCp4FPJC-Al5r3ZVZFcrGk1bpGEr19XzupOml94_dqre8H30ahQ-T7linwUdMTY4s8iqUvSfTYiit-nQUFAEYSNalOcUV2ZRePp0NSYYYDPTPPqVZZD809XsJtQDBuZ45ZF-ud-beeMHFeGNXa9Z4W7pvFyk3KoYE4wYncwG9HWXOXCFdJLk4gXrKnYFiSvU1XvotP_DROkCDg5hmyXK1J8K0KOfYOslXxCp8H2OZVxQbB4rjTj7-u7EfKJsjd4AegPvMywy',
+    url_arquivo: '#',
     tipo_mime: 'image/jpeg',
     criado_em: '2026-06-23T16:45:00Z'
   },
   {
     id: 'anx-2',
     chamado_id: 'ch-4',
-    nome_arquivo: 'bearing_race_crack.jpg',
+    nome_arquivo: 'trinca_pista_rolamento.jpg',
     tamanho_arquivo: '512 KB',
-    url_arquivo: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCVlS-ZP7VUVGxWkoZrULfQtKyW6NMaBDXowzY4-sBotB4Kxae3MVsN0BDm80xvU5IDQraCDkOXQ2_BcxM2yU3DBQ_B-czUCjvcTi0BHPAUWzv4IBLW6xM296iUHS4WHw7dnM7Ta_SUSJE4tPAyY0J56UVH-7TnRPSbmUjghLnGnUC0VDcpX6BHZ-77-ezlpyBnxvkCZXTSgytIjwigLsi8Abzm4EdedHa6xRXZ3ew-xqsDTpTVkznRE5Obl2xkADTPJkSucnqs30F-',
+    url_arquivo: '#',
     tipo_mime: 'image/jpeg',
     criado_em: '2026-06-23T16:46:00Z'
   }
@@ -309,10 +378,10 @@ export const mockAnexos: ChamadoAnexo[] = [
 export const mockOrcamentos: Orcamento[] = [
   {
     id: 'orc-1',
-    codigo: '#ORC-2023-0891',
+    codigo: '#ORC-2026-0891',
     maquina_id: 'maq-2',
-    maquina_serie: 'SN-9876543210',
-    maquina_modelo: 'Torno CNC X-2000 Pro',
+    maquina_serie: 'FQ-2023-047',
+    maquina_modelo: 'Bomba de Concreto FME 2000-90',
     referencia: 'Manutenção Preventiva de 3000h',
     data_emissao: '2026-06-15',
     valor_total: 12450.00,
@@ -322,11 +391,11 @@ export const mockOrcamentos: Orcamento[] = [
   },
   {
     id: 'orc-2',
-    codigo: '#ORC-2023-0885',
+    codigo: '#ORC-2026-0885',
     maquina_id: 'maq-1',
     maquina_serie: 'FQ-2024-001',
-    maquina_modelo: 'Bomba de Concreto B-450',
-    referencia: 'Substituição de Fusos e Acoplamentos',
+    maquina_modelo: 'Bomba de Concreto FMA 1000-62',
+    referencia: 'Substituição de Pistões e Vedações',
     data_emissao: '2026-06-10',
     valor_total: 8920.00,
     status: 'Aprovado',
@@ -335,11 +404,11 @@ export const mockOrcamentos: Orcamento[] = [
   },
   {
     id: 'orc-3',
-    codigo: '#ORC-2023-0872',
+    codigo: '#ORC-2026-0872',
     maquina_id: 'maq-3',
-    maquina_serie: 'FRMQ-9982',
-    maquina_modelo: 'Misturador Industrial M-200',
-    referencia: 'Reparo no Motor Principal de Mistura',
+    maquina_serie: 'FQ-2023-112',
+    maquina_modelo: 'Perfuratriz Hidráulica FMCT 25-080',
+    referencia: 'Reparo no Motor Hidráulico de Rotação',
     data_emissao: '2026-06-02',
     valor_total: 15300.00,
     status: 'Recusado',
@@ -348,47 +417,30 @@ export const mockOrcamentos: Orcamento[] = [
   },
   {
     id: 'orc-4',
-    codigo: '#ORC-2023-0895',
+    codigo: '#ORC-2026-0895',
     maquina_id: 'maq-2',
-    maquina_serie: 'SN-9876543210',
-    maquina_modelo: 'Torno CNC X-2000 Pro',
-    referencia: 'Atualização de Software e Encoders CNC',
+    maquina_serie: 'FQ-2023-047',
+    maquina_modelo: 'Bomba de Concreto FME 2000-90',
+    referencia: 'Troca do Sensor de Pressão da Linha',
     data_emissao: '2026-06-18',
     valor_total: 4500.00,
     status: 'Pendente',
     id_externo: 'EXT-ORC-0895',
     origem: 'CRM_SALES'
-  }
-];
-
-// Initial Mock Manuals
-export const mockManuais: Manual[] = [
-  {
-    id: 'man-1',
-    titulo: 'Esquema Hidráulico T-500',
-    descricao: 'Diagrama hidráulico detalhado do sistema de bombeamento de concreto, arrefecimento e lubrificação por via úmida.',
-    modelo_compativel: 'Bomba de Concreto B-450',
-    categoria: 'Hidráulica',
-    tamanho_pdf: '2.4 MB',
-    url_pdf: '#'
   },
   {
-    id: 'man-2',
-    titulo: 'Painel Elétrico Serie X',
-    descricao: 'Esquema de fiação elétrica, parametrização dos servo drives e manual para identificação rápida de falhas eletrônicas no painel de comando.',
-    modelo_compativel: 'Torno CNC X-2000 Pro',
-    categoria: 'Elétrica',
-    tamanho_pdf: '5.1 MB',
-    url_pdf: '#'
-  },
-  {
-    id: 'man-3',
-    titulo: 'Manual de Operação Geral',
-    descricao: 'Guia de referência abrangente contendo instruções passo a passo para setup físico, calibração tridimensional e parametrização dos controladores CNC.',
-    modelo_compativel: 'Torno CNC X-2000 Pro',
-    categoria: 'Operação',
-    tamanho_pdf: '12.0 MB',
-    url_pdf: '#'
+    // Orçamento de outra empresa (emp-2) — não pode aparecer para emp-1.
+    id: 'orc-5',
+    codigo: '#ORC-2026-0902',
+    maquina_id: 'maq-6',
+    maquina_serie: 'FQ-2025-003',
+    maquina_modelo: 'Bomba de Concreto FMA 1000-62',
+    referencia: 'Kit de Revisão Preventiva 300h',
+    data_emissao: '2026-06-25',
+    valor_total: 3780.00,
+    status: 'Pendente',
+    id_externo: 'EXT-ORC-0902',
+    origem: 'CRM_SALES'
   }
 ];
 
@@ -397,38 +449,38 @@ export const mockPecas: Peca[] = [
   {
     id: 'pec-1',
     codigo: 'COD: 994-A2',
-    nome: 'Eixo Principal Engrenado',
-    descricao: 'Eixo usinado de alta liga com têmpera por indução. Projetado para suportar alto torque e esforços mecânicos extremos.',
-    modelo_compativel: 'Torno CNC X-2000 Pro',
+    nome: 'Pistão de Bombeamento',
+    descricao: 'Pistão de alta liga com tratamento superficial. Projetado para suportar ciclos contínuos de alta pressão no bombeamento de concreto.',
+    modelo_compativel: 'Bomba de Concreto FMA 1000-62',
     categoria: 'Mecânica',
-    imagem_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDTLe7-pV80NZCtYNnTHTNUgVhZwE7MweVrux0E4nLrKbl1b_ZBfncVhAMdbrEBOQYnvVjYiyWbGy6_sARteP-5IKDfW1Gb5YeM9SnGMp94LvTLxjLLcoEWrs-rW3YHcGHNOHJV0zHRembDAR28nlwHWYyxGFlYmoIOalkFySeDlC6KxshAaKR07QSXSb-DUW4XUwZtOZJYIluAkOtkdASZoXiUp4LQYaVUAuvbZQb2uY89hhztlJ6i20RdDkrIgw0TvtpDkn084uxu'
+    imagem_url: 'https://images.unsplash.com/photo-1518709594023-6eab9bab7b23?auto=format&fit=crop&q=80&w=600'
   },
   {
     id: 'pec-2',
     codigo: 'COD: VS-24V-HD',
     nome: 'Válvula Solenoide Direcional',
     descricao: 'Válvula hidráulica direcional de 4 vias, 2 posições. Operação de alta velocidade com acionamento elétrico por solenoide de 24V.',
-    modelo_compativel: 'Bomba de Concreto B-450',
+    modelo_compativel: 'Bomba de Concreto FMA 1000-62',
     categoria: 'Hidráulica',
-    imagem_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCNK2GCPdBBi7_5l1Jpda4AOgyaM1ZZ8cVg65Zk9aFGM9Vp1OLrxWuwC8x0vsEt3Rxewjo6H9POp1CspRFIuwhd3hC7GUWyE6Xq7TOd9OgGK8B0wuhVuUbrT_XStTQHhpP5bctKuk5ydcldvL2AnGGVGWacDXux25u6Mu9UdRlVNH9EC6FPsPf67EA69HgcpWt4iA0-nRkSetiY6flJQuMg9RBCu9-Upba72BGosxZ8DyBga-ZOvQZfap42ihGRoUAsFw0sQj7h--YY'
+    imagem_url: 'https://images.unsplash.com/photo-1635348729202-c5e2b9d1b5b5?auto=format&fit=crop&q=80&w=600'
   },
   {
     id: 'pec-3',
-    codigo: 'COD: SM-5KW-Z',
-    nome: 'Servomotor Eixo Z (5kW)',
-    descricao: 'Servomotor síncrono AC de alta dinâmica. Equipado com encoder absoluto de altíssima precisão e freio de retenção para controle vertical.',
-    modelo_compativel: 'Torno CNC X-2000 Pro',
+    codigo: 'COD: SP-150-Z',
+    nome: 'Sensor de Pressão da Linha',
+    descricao: 'Transdutor de pressão para linha de concreto, faixa 0-150 bar, com saída 4-20 mA e vedação resistente a abrasão.',
+    modelo_compativel: 'Bomba de Concreto FME 2000-90',
     categoria: 'Elétrica',
-    imagem_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDPCHG8wy2nW8zpUhhjCFVkedo8XU-tQUfjNz71tAvAC8vuvx7aqG2s8N8zqMFsTM8JqgFSI6llp7bu-jDNRION7f3NRQIUSLNlI78eKG6VUALhhNum5QQt9vHzUuQ9XrEGCnef4k9b88OnwwJXaIKwzvgDzxVtikzGSW8Efd_1gW8zjHiXtis93px6MGPUo73ROvwt6DvGHxwg6tITQJxoxF7H9p67n4qlqEhFUDNg1UGB5ZKSQjT4bvo4se3VYr-jo3RzCSHFlnSP'
+    imagem_url: 'https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=600'
   },
   {
     id: 'pec-4',
-    codigo: 'COD: GL-35-BLOCK',
-    nome: 'Patim para Guia Linear 35mm',
-    descricao: 'Patim de esferas recirculantes tamanho 35. Alta rigidez e capacidade de carga dinâmica em todos os sentidos de força.',
-    modelo_compativel: 'Centro de Usinagem Vertical VMC-1000 CNC',
-    categoria: 'Mecânica',
-    imagem_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuArttW9B1VnXWWq1IeDnk1nQZd5u_Bx4WoIMV82m-6YnV0UwaTHAq3wVSiW961YwEORchCmY5b1OT_1Sfj65VPWYJIyQw9SDxNAP_PixEyLIQ-IPdWpanTiT7agFyQCrDRFpmABGjJbrbbOWpL8ZCaxo8qQgpekAVCsJF7Lol3tFnSDrTmVgkFA4FpqUq-FCC9WL5rtnFxixItE0vMQ7uU_k8PvxE_I7UDwJgZorycDJu_qUU9XraP7BfplWrgMimdWrq8nR2Dlqx0N'
+    codigo: 'COD: MR-4200-HD',
+    nome: 'Motor Hidráulico de Rotação',
+    descricao: 'Motor hidráulico de pistões axiais para o conjunto de rotação da perfuratriz. Torque nominal de 4.200 Nm.',
+    modelo_compativel: 'Perfuratriz Hidráulica FMCT 25-080',
+    categoria: 'Hidráulica',
+    imagem_url: 'https://images.unsplash.com/photo-1565043589221-1a6fd9ae45c7?auto=format&fit=crop&q=80&w=600'
   }
 ];
 
@@ -456,32 +508,10 @@ export const mockRelatorios: Relatorio[] = [
     id: 'rel-3',
     titulo: 'Relatório Técnico de Diagnóstico e Calibração Anual',
     maquina_id: 'maq-2',
-    maquina_serie: 'SN-9876543210',
+    maquina_serie: 'FQ-2023-047',
     tipo: 'Manutenção',
     data_gerado: '2026-05-13',
     url_documento: '#'
-  }
-];
-
-// Initial Mock Announcements (Atualizações)
-export const mockAtualizacoes: Atualizacao[] = [
-  {
-    id: 'upd-1',
-    titulo: 'Comunicado Importante: Atualização de Software de Segurança',
-    conteudo: 'A Feramaq disponibilizou uma nova versão de firmware crítica para todas as bombas de concreto fabricadas em 2024. Esta atualização otimiza a válvula hidráulica de segurança de sobrecarga elétrica para evitar desligamentos inesperados em dias quentes. Agende sua instalação gratuita via aba Chamados.',
-    data_publicacao: '2026-06-20',
-    lida: false,
-    id_externo: 'EXT-UPD-001',
-    origem: 'PORTAL_ADMIN_FERAMAQ'
-  },
-  {
-    id: 'upd-2',
-    titulo: 'Disponibilidade de Peças Genuínas em Estoque Express',
-    conteudo: 'Inauguramos nosso novo Centro de Distribuição em São Paulo, o que garante entrega de rolamentos de fuso, guias lineares e vedações principais em até 12 horas para toda a região metropolitana. Realize suas cotações diretamente no portal na aba Manuais & Peças.',
-    data_publicacao: '2026-06-12',
-    lida: true,
-    id_externo: 'EXT-UPD-002',
-    origem: 'PORTAL_ADMIN_FERAMAQ'
   }
 ];
 

@@ -9,6 +9,13 @@
 -- Execute no SQL Editor do Supabase (Dashboard → SQL Editor). Idempotente:
 -- pode rodar mais de uma vez sem efeito colateral.
 --
+-- ⚠️ RODE supabase/portal_auth.sql LOGO EM SEGUIDA. As policies deste arquivo
+-- usam USING (true) para authenticated, o que significa "qualquer usuário
+-- autenticado lê a tabela inteira" — isso NÃO é isolamento entre clientes.
+-- portal_auth.sql substitui essas policies por recorte real por contact_id.
+-- Rodar só este arquivo e parar aqui deixa o dado de um cliente visível para
+-- outro assim que houver login.
+--
 -- Contexto / decisões registradas (ver docs/INTEGRACAO_CRM.md no repo do
 -- portal para o mapeamento completo):
 --

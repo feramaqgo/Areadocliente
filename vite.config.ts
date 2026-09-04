@@ -11,6 +11,19 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    build: {
+      rollupOptions: {
+        output: {
+          // Separa as libs do código da aplicação: elas mudam raramente, então
+          // o navegador reaproveita o cache entre deploys em vez de rebaixar
+          // tudo a cada mudança de tela.
+          manualChunks: {
+            react: ['react', 'react-dom'],
+            supabase: ['@supabase/supabase-js'],
+          },
+        },
+      },
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

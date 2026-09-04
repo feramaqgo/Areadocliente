@@ -11,10 +11,11 @@ import {
   ShieldCheck,
   AlertCircle
 } from 'lucide-react';
-import { Orcamento } from '../types';
+import { Orcamento, Usuario } from '../types';
 
 interface OrcamentosProps {
   orcamentos: Orcamento[];
+  currentUser: Usuario | null;
   selectedOrcamentoId: string | null;
   onSelectOrcamento: (id: string | null) => void;
   onUpdateQuoteStatus: (id: string, status: 'Aprovado' | 'Recusado') => void;
@@ -22,10 +23,15 @@ interface OrcamentosProps {
 
 export default function Orcamentos({
   orcamentos,
+  currentUser,
   selectedOrcamentoId,
   onSelectOrcamento,
   onUpdateQuoteStatus
 }: OrcamentosProps) {
+  // Só o gestor da conta aprova ou recusa proposta comercial — é o que o
+  // cadastro de usuários já promete em PerfilConfig ("Operador: apenas
+  // visualização / abrir chamados").
+  const podeDecidir = currentUser?.role === 'cliente_admin';
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'Todos' | 'Pendente' | 'Aprovado' | 'Recusado'>('Todos');
 
@@ -149,23 +155,33 @@ export default function Orcamentos({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 mt-2">
-                  <button 
-                    onClick={() => onUpdateQuoteStatus(activeQuote.id, 'Aprovado')}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-3 rounded-lg flex items-center justify-center gap-1.5 shadow"
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                    <span>Aprovar Orçamento</span>
-                  </button>
+                {podeDecidir ? (
+                  <div className="flex flex-col gap-2 mt-2">
+                    <button
+                      onClick={() => onUpdateQuoteStatus(activeQuote.id, 'Aprovado')}
+                      className="w-full bg-green-600 hover:bg-green-700 text-white font-bold text-xs py-3 rounded-lg flex items-center justify-center gap-1.5 shadow"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Aprovar Orçamento</span>
+                    </button>
 
-                  <button 
-                    onClick={() => onUpdateQuoteStatus(activeQuote.id, 'Recusado')}
-                    className="w-full bg-white border border-red-200 text-red-700 hover:bg-red-50 font-bold text-xs py-3 rounded-lg flex items-center justify-center gap-1.5"
-                  >
-                    <XCircle className="w-4 h-4" />
-                    <span>Recusar Orçamento</span>
-                  </button>
-                </div>
+                    <button
+                      onClick={() => onUpdateQuoteStatus(activeQuote.id, 'Recusado')}
+                      className="w-full bg-white border border-red-200 text-red-700 hover:bg-red-50 font-bold text-xs py-3 rounded-lg flex items-center justify-center gap-1.5"
+                    >
+                      <XCircle className="w-4 h-4" />
+                      <span>Recusar Orçamento</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mt-2 bg-white border border-[#eeeeee] rounded-lg p-3 flex gap-2 text-[11px] text-[#54595F] leading-relaxed">
+                    <AlertCircle className="w-4 h-4 text-[#ff6801] shrink-0 mt-0.5" />
+                    <span>
+                      Apenas o gestor da conta pode aprovar ou recusar propostas. Solicite a decisão
+                      ao responsável cadastrado em <strong>Meus Dados e Equipe</strong>.
+                    </span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="bg-white p-5 rounded-xl border border-[#eeeeee] text-xs flex flex-col gap-3">
