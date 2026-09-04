@@ -4,21 +4,21 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  mockEmpresas, 
-  mockUsuarios, 
-  mockMaquinas, 
-  mockChamados, 
-  mockMensagens, 
-  mockAnexos, 
-  mockOrcamentos, 
-  mockManuais, 
-  mockPecas, 
-  mockRelatorios, 
-  mockAtualizacoes, 
-  mockLogs 
+import {
+  mockEmpresas,
+  mockUsuarios,
+  mockMaquinas,
+  mockChamados,
+  mockMensagens,
+  mockAnexos,
+  mockOrcamentos,
+  mockPecas,
+  mockRelatorios,
+  mockLogs
 } from './data';
 import { Usuario, Empresa, Maquina, Chamado, ChamadoMensagem, ChamadoAnexo, Orcamento, Manual, Peca, Relatorio, Atualizacao, LogAtividade } from './types';
+import { fetchManuais } from './lib/api/manuais';
+import { fetchAtualizacoes, saveReadIds } from './lib/api/comunicados';
 
 // Component Imports
 import Layout from './components/Layout';
@@ -51,10 +51,10 @@ export default function App() {
   const [mensagens, setMensagens] = useState<ChamadoMensagem[]>(mockMensagens);
   const [anexos, setAnexos] = useState<ChamadoAnexo[]>(mockAnexos);
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>(mockOrcamentos);
-  const [manuais, setManuais] = useState<Manual[]>(mockManuais);
+  const [manuais, setManuais] = useState<Manual[]>([]);
   const [pecas, setPecas] = useState<Peca[]>(mockPecas);
   const [relatorios, setRelatorios] = useState<Relatorio[]>(mockRelatorios);
-  const [atualizacoes, setAtualizacoes] = useState<Atualizacao[]>(mockAtualizacoes);
+  const [atualizacoes, setAtualizacoes] = useState<Atualizacao[]>([]);
   const [logs, setLogs] = useState<LogAtividade[]>(mockLogs);
 
   // Load from LocalStorage on mount
@@ -65,7 +65,6 @@ export default function App() {
     const savedAnexos = localStorage.getItem('feramaq_anexos');
     const savedOrcamentos = localStorage.getItem('feramaq_orcamentos');
     const savedUsuarios = localStorage.getItem('feramaq_usuarios');
-    const savedAtualizacoes = localStorage.getItem('feramaq_atualizacoes');
 
     if (savedUser) setCurrentUser(JSON.parse(savedUser));
     if (savedChamados) setChamados(JSON.parse(savedChamados));
@@ -73,7 +72,18 @@ export default function App() {
     if (savedAnexos) setAnexos(JSON.parse(savedAnexos));
     if (savedOrcamentos) setOrcamentos(JSON.parse(savedOrcamentos));
     if (savedUsuarios) setUsuarios(JSON.parse(savedUsuarios));
-    if (savedAtualizacoes) setAtualizacoes(JSON.parse(savedAtualizacoes));
+  }, []);
+
+  // Manuais e Comunicados já vêm do Supabase real (não dependem de login
+  // de cliente, que ainda está pendente — ver docs/INTEGRACAO_CRM.md).
+  useEffect(() => {
+    fetchManuais()
+      .then(setManuais)
+      .catch((err) => console.error('Falha ao carregar manuais do Supabase:', err));
+
+    fetchAtualizacoes()
+      .then(setAtualizacoes)
+      .catch((err) => console.error('Falha ao carregar comunicados do Supabase:', err));
   }, []);
 
   // Save changes helper
@@ -343,19 +353,22 @@ export default function App() {
   };
 
   // Toggle Read on Announcement notifications
+  // O conteúdo vem do Supabase (client_announcements); o estado de leitura
+  // por enquanto só é local (client_announcement_reads exige sessão
+  // autenticada — ver docs/INTEGRACAO_CRM.md).
   const handleToggleRead = (id: string) => {
-    const updated = atualizacoes.map(item => 
+    const updated = atualizacoes.map(item =>
       item.id === id ? { ...item, lida: !item.lida } : item
     );
     setAtualizacoes(updated);
-    saveStateToLocalStorage('feramaq_atualizacoes', updated);
+    saveReadIds(new Set(updated.filter(item => item.lida).map(item => item.id)));
   };
 
   // Mark all notifications as read when opening dropdown
   const handleMarkNotificationsRead = () => {
     const updated = atualizacoes.map(item => ({ ...item, lida: true }));
     setAtualizacoes(updated);
-    saveStateToLocalStorage('feramaq_atualizacoes', updated);
+    saveReadIds(new Set(updated.map(item => item.id)));
   };
 
   // Unread announcements count
