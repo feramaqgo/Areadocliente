@@ -1,0 +1,6 @@
+{
+  "name": "Área do Cliente Feramaq",
+  "description": "Portal B2B para clientes da fabricante de máquinas de bombeamento de concreto Feramaq. Permite gerenciar chamados, orçamentos, manuais, peças e relatórios.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
