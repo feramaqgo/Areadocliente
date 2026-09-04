@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import {
   mockEmpresas,
   mockUsuarios,
@@ -17,20 +17,29 @@ import {
   mockLogs
 } from './data';
 import { Usuario, Empresa, Maquina, Chamado, ChamadoMensagem, ChamadoAnexo, Orcamento, Manual, Peca, Relatorio, Atualizacao, LogAtividade } from './types';
-import { fetchManuais } from './lib/api/manuais';
-import { fetchAtualizacoes, saveReadIds } from './lib/api/comunicados';
+import { saveReadIds } from './lib/leituraComunicados';
 
-// Component Imports
+// Layout e Auth são necessários já na primeira renderização; as telas internas
+// entram por code-splitting para não pesarem o carregamento inicial.
 import Layout from './components/Layout';
 import Auth from './components/Auth';
-import Dashboard from './components/Dashboard';
-import Chamados from './components/Chamados';
-import Maquinas from './components/Maquinas';
-import ManuaisPecas from './components/ManuaisPecas';
-import Orcamentos from './components/Orcamentos';
-import Relatorios from './components/Relatorios';
-import PerfilConfig from './components/PerfilConfig';
-import Anuncios from './components/Anuncios';
+
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const Chamados = lazy(() => import('./components/Chamados'));
+const Maquinas = lazy(() => import('./components/Maquinas'));
+const ManuaisPecas = lazy(() => import('./components/ManuaisPecas'));
+const Orcamentos = lazy(() => import('./components/Orcamentos'));
+const Relatorios = lazy(() => import('./components/Relatorios'));
+const PerfilConfig = lazy(() => import('./components/PerfilConfig'));
+const Anuncios = lazy(() => import('./components/Anuncios'));
+
+function CarregandoTela() {
+  return (
+    <div className="flex items-center justify-center py-24">
+      <div className="w-8 h-8 border-2 border-[#e2bfb1] border-t-[#ff6801] rounded-full animate-spin" />
+    </div>
+  );
+}
 
 export default function App() {
   // Authentication & Navigation Route States
@@ -76,12 +85,16 @@ export default function App() {
 
   // Manuais e Comunicados já vêm do Supabase real (não dependem de login
   // de cliente, que ainda está pendente — ver docs/INTEGRACAO_CRM.md).
+  // O import é dinâmico para o cliente Supabase (~222 kB) não entrar no
+  // caminho crítico da primeira renderização.
   useEffect(() => {
-    fetchManuais()
+    import('./lib/api/manuais')
+      .then(({ fetchManuais }) => fetchManuais())
       .then(setManuais)
       .catch((err) => console.error('Falha ao carregar manuais do Supabase:', err));
 
-    fetchAtualizacoes()
+    import('./lib/api/comunicados')
+      .then(({ fetchAtualizacoes }) => fetchAtualizacoes())
       .then(setAtualizacoes)
       .catch((err) => console.error('Falha ao carregar comunicados do Supabase:', err));
   }, []);
@@ -307,8 +320,12 @@ export default function App() {
   // Update quote status (Approve / Refuse)
   const handleUpdateQuoteStatus = (quoteId: string, newStatus: 'Aprovado' | 'Recusado') => {
     if (!currentUser) return;
+    // Decisão comercial é exclusiva do gestor da conta. A UI já esconde os
+    // botões, mas a checagem fica aqui também para o botão não ser a única
+    // barreira. A barreira definitiva é a RLS — ver supabase/portal_auth.sql.
+    if (currentUser.role !== 'cliente_admin') return;
 
-    const updated = orcamentos.map(o => 
+    const updated = orcamentos.map(o =>
       o.id === quoteId ? { ...o, status: newStatus } : o
     );
     setOrcamentos(updated);
@@ -377,16 +394,31 @@ export default function App() {
   // Active Company linked to current user
   const activeCompany = empresas.find(e => e.id === currentUser?.empresa_id) || empresas[0];
 
+  // Recorte por empresa. As máquinas são a âncora do tenant: chamados,
+  // orçamentos e relatórios pertencem ao cliente através da máquina que
+  // referenciam. Sem isto, um cliente enxerga os dados de outro.
+  // Atenção: isto é recorte de exibição. A garantia de verdade tem que estar
+  // na RLS do Supabase — ver supabase/portal_auth.sql.
+  const maquinasDaEmpresa = maquinas.filter(m => m.empresa_id === currentUser?.empresa_id);
+  const maquinaIdsDaEmpresa = new Set(maquinasDaEmpresa.map(m => m.id));
+  const chamadosDaEmpresa = chamados.filter(c => maquinaIdsDaEmpresa.has(c.maquina_id));
+  const orcamentosDaEmpresa = orcamentos.filter(o => maquinaIdsDaEmpresa.has(o.maquina_id));
+  const relatoriosDaEmpresa = relatorios.filter(r => maquinaIdsDaEmpresa.has(r.maquina_id));
+  const chamadoIdsDaEmpresa = new Set(chamadosDaEmpresa.map(c => c.id));
+  const mensagensDaEmpresa = mensagens.filter(m => chamadoIdsDaEmpresa.has(m.chamado_id));
+  const anexosDaEmpresa = anexos.filter(a => chamadoIdsDaEmpresa.has(a.chamado_id));
+
   // Route router switcher rendering block
   const renderRouteView = () => {
     switch (currentRoute) {
       case 'dashboard':
         return (
-          <Dashboard 
-            maquinas={maquinas}
-            chamados={chamados}
-            orcamentos={orcamentos}
-            relatorios={relatorios}
+          <Dashboard
+            maquinas={maquinasDaEmpresa}
+            chamados={chamadosDaEmpresa}
+            orcamentos={orcamentosDaEmpresa}
+            relatorios={relatoriosDaEmpresa}
+            empresaNome={activeCompany?.razao_social}
             onNavigate={handleNavigate}
           />
         );
@@ -394,11 +426,11 @@ export default function App() {
       case 'chamados-novo':
       case 'chamado-detalhe':
         return (
-          <Chamados 
-            chamados={chamados}
-            maquinas={maquinas}
-            mensagens={mensagens}
-            anexos={anexos}
+          <Chamados
+            chamados={chamadosDaEmpresa}
+            maquinas={maquinasDaEmpresa}
+            mensagens={mensagensDaEmpresa}
+            anexos={anexosDaEmpresa}
             onAddChamado={handleAddChamado}
             onAddMensagem={handleAddMensagem}
             selectedChamadoId={selectedChamadoId}
@@ -417,10 +449,10 @@ export default function App() {
       case 'maquinas':
       case 'maquina-detalhe':
         return (
-          <Maquinas 
-            maquinas={maquinas}
-            chamados={chamados}
-            orcamentos={orcamentos}
+          <Maquinas
+            maquinas={maquinasDaEmpresa}
+            chamados={chamadosDaEmpresa}
+            orcamentos={orcamentosDaEmpresa}
             selectedMaquinaId={selectedMaquinaId}
             onSelectMaquina={(id) => {
               setSelectedMaquinaId(id);
@@ -435,18 +467,19 @@ export default function App() {
         );
       case 'manuais-pecas':
         return (
-          <ManuaisPecas 
+          <ManuaisPecas
             manuais={manuais}
             pecas={pecas}
-            maquinas={maquinas}
+            maquinas={maquinasDaEmpresa}
             onRequestQuote={handleRequestQuote}
           />
         );
       case 'orcamentos':
       case 'orcamento-detalhe':
         return (
-          <Orcamentos 
-            orcamentos={orcamentos}
+          <Orcamentos
+            orcamentos={orcamentosDaEmpresa}
+            currentUser={currentUser}
             selectedOrcamentoId={selectedOrcamentoId}
             onSelectOrcamento={(id) => {
               setSelectedOrcamentoId(id);
@@ -461,9 +494,9 @@ export default function App() {
         );
       case 'relatorios':
         return (
-          <Relatorios 
-            relatorios={relatorios}
-            maquinas={maquinas}
+          <Relatorios
+            relatorios={relatoriosDaEmpresa}
+            maquinas={maquinasDaEmpresa}
           />
         );
       case 'perfil':
@@ -487,11 +520,12 @@ export default function App() {
         );
       default:
         return (
-          <Dashboard 
-            maquinas={maquinas}
-            chamados={chamados}
-            orcamentos={orcamentos}
-            relatorios={relatorios}
+          <Dashboard
+            maquinas={maquinasDaEmpresa}
+            chamados={chamadosDaEmpresa}
+            orcamentos={orcamentosDaEmpresa}
+            relatorios={relatoriosDaEmpresa}
+            empresaNome={activeCompany?.razao_social}
             onNavigate={handleNavigate}
           />
         );
@@ -521,7 +555,7 @@ export default function App() {
       unreadCount={unreadCount}
       onMarkNotificationsRead={handleMarkNotificationsRead}
     >
-      {renderRouteView()}
+      <Suspense fallback={<CarregandoTela />}>{renderRouteView()}</Suspense>
     </Layout>
   );
 }

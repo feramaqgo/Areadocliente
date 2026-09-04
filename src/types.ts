@@ -37,11 +37,12 @@ export interface Maquina {
   imagem_url: string;
   fabricante: string;
   potencia_motor: string;
-  rotacao_maxima: string;
-  diametro_torneamento: string;
-  comprimento_maximo: string;
-  comando_numerico: string;
   peso_bruto: string;
+  // As specs relevantes mudam por linha de produto (bomba de concreto tem
+  // vazão e alcance de lança; perfuratriz tem profundidade e torque), então
+  // são um mapa aberto em vez de colunas fixas — mesma abordagem que o CRM
+  // usa em products.specs.
+  specs: Record<string, string>;
   empresa_id: string;
 }
 

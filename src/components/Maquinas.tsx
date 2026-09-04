@@ -145,7 +145,7 @@ export default function Maquinas({
             <div className="bg-white rounded-xl border border-[#eeeeee] shadow-sm p-6">
               <h3 className="font-headline font-bold text-base text-[#1a1c1c] mb-4 flex items-center gap-2 pb-2 border-b border-[#f3f3f3]">
                 <Activity className="w-4.5 h-4.5 text-[#ff6801]" />
-                Especificações Técnicas do Stitch
+                Especificações Técnicas
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-xs">
@@ -170,29 +170,15 @@ export default function Maquinas({
                   <span className="font-bold text-[#1a1c1c]">{activeMaquina.potencia_motor}</span>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-[#eeeeee]">
-                  <span className="text-[#54595F] font-semibold">Rotação Máxima</span>
-                  <span className="font-bold text-[#1a1c1c]">{activeMaquina.rotacao_maxima}</span>
-                </div>
-                {activeMaquina.diametro_torneamento !== 'N/A' && (
-                  <div className="flex justify-between py-1.5 border-b border-[#eeeeee]">
-                    <span className="text-[#54595F] font-semibold">Diâmetro Máximo Torneável</span>
-                    <span className="font-bold text-[#1a1c1c]">{activeMaquina.diametro_torneamento}</span>
-                  </div>
-                )}
-                {activeMaquina.comprimento_maximo !== 'N/A' && (
-                  <div className="flex justify-between py-1.5 border-b border-[#eeeeee]">
-                    <span className="text-[#54595F] font-semibold">Comprimento de Usinagem Máximo</span>
-                    <span className="font-bold text-[#1a1c1c]">{activeMaquina.comprimento_maximo}</span>
-                  </div>
-                )}
-                <div className="flex justify-between py-1.5 border-b border-[#eeeeee]">
-                  <span className="text-[#54595F] font-semibold">Comando Numérico (CNC)</span>
-                  <span className="font-bold text-[#1a1c1c]">{activeMaquina.comando_numerico}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-[#eeeeee]">
                   <span className="text-[#54595F] font-semibold">Peso Bruto Total</span>
                   <span className="font-bold text-[#1a1c1c]">{activeMaquina.peso_bruto}</span>
                 </div>
+                {Object.entries(activeMaquina.specs).map(([label, valor]) => (
+                  <div key={label} className="flex justify-between py-1.5 border-b border-[#eeeeee]">
+                    <span className="text-[#54595F] font-semibold">{label}</span>
+                    <span className="font-bold text-[#1a1c1c]">{valor}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

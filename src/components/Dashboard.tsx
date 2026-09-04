@@ -17,15 +17,33 @@ interface DashboardProps {
   chamados: Chamado[];
   orcamentos: Orcamento[];
   relatorios: Relatorio[];
+  empresaNome?: string;
   onNavigate: (route: string, entityId?: string) => void;
 }
 
-export default function Dashboard({ 
-  maquinas, 
-  chamados, 
-  orcamentos, 
-  relatorios, 
-  onNavigate 
+interface AtividadeRecente {
+  id: string;
+  codigo: string;
+  referencia: string;
+  data: Date;
+  dataLabel: string;
+  status: string;
+  rota: string;
+}
+
+// 'YYYY-MM-DD' com o construtor Date é interpretado como UTC, o que exibe o
+// dia anterior em fuso negativo (BRT). Forçar hora local evita isso.
+function parseDataEmissao(dataIso: string): Date {
+  return new Date(`${dataIso}T00:00:00`);
+}
+
+export default function Dashboard({
+  maquinas,
+  chamados,
+  orcamentos,
+  relatorios,
+  empresaNome,
+  onNavigate
 }: DashboardProps) {
   // Compute metrics
   const totalMaquinas = maquinas.length;
@@ -33,21 +51,53 @@ export default function Dashboard({
   const openChamados = chamados.filter(c => c.status !== 'Concluído').length;
   const pendingQuotes = orcamentos.filter(o => o.status === 'Pendente').length;
   const reportsCount = relatorios.length;
+  const maquinasComPendencia = totalMaquinas - activeMaquinas;
+  const chamadosUrgentes = chamados.filter(c => c.urgencia === 'Urgente' && c.status !== 'Concluído').length;
+
+  // Atividades recentes reais: chamados e orçamentos do cliente, do mais
+  // recente para o mais antigo.
+  const atividadesRecentes: AtividadeRecente[] = [
+    ...chamados.map(c => {
+      const data = new Date(c.atualizado_em);
+      return {
+        id: c.id,
+        codigo: c.codigo,
+        referencia: c.maquina_modelo,
+        data,
+        dataLabel: data.toLocaleString('pt-BR', {
+          day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+        }),
+        status: c.status,
+        rota: 'chamados'
+      };
+    }),
+    ...orcamentos.map(o => {
+      const data = parseDataEmissao(o.data_emissao);
+      return {
+        id: o.id,
+        codigo: o.codigo,
+        referencia: o.referencia,
+        data,
+        dataLabel: data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
+        status: `Orçamento ${o.status}`,
+        rota: 'orcamentos'
+      };
+    })
+  ]
+    .sort((a, b) => b.data.getTime() - a.data.getTime())
+    .slice(0, 5);
 
   const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'Em Andamento':
-      case 'Em Atendimento':
-        return 'bg-amber-100 text-amber-800 border border-amber-200';
-      case 'Aguardando Peça':
-        return 'bg-red-100 text-red-800 border border-red-200';
-      case 'Orçamento Pendente':
-      case 'Pendente':
-        return 'bg-blue-100 text-blue-800 border border-blue-200';
-      case 'Concluído':
-      default:
-        return 'bg-green-100 text-green-800 border border-green-200';
+    if (status.includes('Recusado') || status === 'Aguardando Peça') {
+      return 'bg-red-100 text-red-800 border border-red-200';
     }
+    if (status === 'Em Atendimento' || status === 'Em Andamento') {
+      return 'bg-amber-100 text-amber-800 border border-amber-200';
+    }
+    if (status.includes('Pendente') || status === 'Aberto') {
+      return 'bg-blue-100 text-blue-800 border border-blue-200';
+    }
+    return 'bg-green-100 text-green-800 border border-green-200';
   };
 
   return (
@@ -55,11 +105,23 @@ export default function Dashboard({
       {/* Hello / Welcome header */}
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-headline font-extrabold text-[#1a1c1c] tracking-tight">
-          Olá, Construtora Prime.
+          Olá{empresaNome ? `, ${empresaNome}` : ''}.
         </h1>
         <div className="flex items-center gap-2 text-sm text-[#54595F] font-medium">
-          <span className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] block animate-pulse"></span>
-          <span>Suas máquinas estão operando perfeitamente.</span>
+          <span
+            className={`w-2.5 h-2.5 rounded-full block animate-pulse ${
+              maquinasComPendencia > 0
+                ? 'bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]'
+                : 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]'
+            }`}
+          ></span>
+          <span>
+            {totalMaquinas === 0
+              ? 'Nenhum equipamento cadastrado para esta conta.'
+              : maquinasComPendencia > 0
+                ? `${maquinasComPendencia} de ${totalMaquinas} equipamentos precisam de atenção.`
+                : 'Todos os seus equipamentos estão operacionais.'}
+          </span>
         </div>
       </header>
 
@@ -114,13 +176,17 @@ export default function Dashboard({
         >
           <div className="flex justify-between items-start mb-3">
             <span className="text-xs font-bold text-[#54595F] uppercase tracking-wider">Chamados Abertos</span>
-            <div className="px-2 py-0.5 bg-red-100 text-red-700 font-bold text-[10px] rounded uppercase flex items-center gap-1">
-              <span className="w-1 h-1 bg-red-600 rounded-full block animate-ping"></span>
-              Urgente
-            </div>
+            {chamadosUrgentes > 0 && (
+              <div className="px-2 py-0.5 bg-red-100 text-red-700 font-bold text-[10px] rounded uppercase flex items-center gap-1">
+                <span className="w-1 h-1 bg-red-600 rounded-full block animate-ping"></span>
+                Urgente
+              </div>
+            )}
           </div>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-headline font-extrabold text-red-600">{openChamados}</span>
+            <span className={`text-4xl font-headline font-extrabold ${openChamados > 0 ? 'text-red-600' : 'text-[#1a1c1c]'}`}>
+              {openChamados}
+            </span>
             <span className="text-xs text-[#54595F] mb-1">Em atendimento</span>
           </div>
         </div>
@@ -173,100 +239,50 @@ export default function Dashboard({
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#54595F] text-white text-[10px] font-bold uppercase tracking-wider">
-                <th className="py-3 px-4 font-semibold">ID Chamado</th>
-                <th className="py-3 px-4 font-semibold">Equipamento</th>
-                <th className="py-3 px-4 font-semibold">Data</th>
-                <th className="py-3 px-4 font-semibold">Status</th>
-                <th className="py-3 px-4 font-semibold text-right">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#eeeeee] text-xs">
-              {/* Row 1 */}
-              <tr className="hover:bg-[#f9f9f9] transition-colors group">
-                <td className="py-3.5 px-4 font-bold text-[#1a1c1c]">#CH-8921</td>
-                <td className="py-3.5 px-4">Bomba de Concreto B-450</td>
-                <td className="py-3.5 px-4 text-[#54595F]">24 Out 2023, 14:30</td>
-                <td className="py-3.5 px-4">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass('Em Andamento')}`}>
-                    Em Andamento
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  <button 
-                    onClick={() => onNavigate('chamados')}
-                    className="p-1 text-[#54595F] hover:text-[#ff6801] rounded transition-colors"
+        {atividadesRecentes.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#54595F] text-white text-[10px] font-bold uppercase tracking-wider">
+                  <th className="py-3 px-4 font-semibold">Código</th>
+                  <th className="py-3 px-4 font-semibold">Referência</th>
+                  <th className="py-3 px-4 font-semibold">Data</th>
+                  <th className="py-3 px-4 font-semibold">Status</th>
+                  <th className="py-3 px-4 font-semibold text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#eeeeee] text-xs">
+                {atividadesRecentes.map((item) => (
+                  <tr
+                    key={`${item.rota}-${item.id}`}
+                    onClick={() => onNavigate(item.rota, item.id)}
+                    className="hover:bg-[#f9f9f9] transition-colors group cursor-pointer"
                   >
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </td>
-              </tr>
-
-              {/* Row 2 */}
-              <tr className="hover:bg-[#f9f9f9] transition-colors group">
-                <td className="py-3.5 px-4 font-bold text-[#1a1c1c]">#CH-8919</td>
-                <td className="py-3.5 px-4">Misturador Industrial M-200</td>
-                <td className="py-3.5 px-4 text-[#54595F]">22 Out 2023, 09:15</td>
-                <td className="py-3.5 px-4">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass('Aguardando Peça')}`}>
-                    Aguardando Peça
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  <button 
-                    onClick={() => onNavigate('chamados')}
-                    className="p-1 text-[#54595F] hover:text-[#ff6801] rounded transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </td>
-              </tr>
-
-              {/* Row 3 */}
-              <tr className="hover:bg-[#f9f9f9] transition-colors group">
-                <td className="py-3.5 px-4 font-bold text-[#1a1c1c]">#OR-3304</td>
-                <td className="py-3.5 px-4">Manutenção Preventiva</td>
-                <td className="py-3.5 px-4 text-[#54595F]">20 Out 2023, 16:45</td>
-                <td className="py-3.5 px-4">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass('Orçamento Pendente')}`}>
-                    Orçamento Pendente
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  <button 
-                    onClick={() => onNavigate('orcamentos')}
-                    className="p-1 text-[#54595F] hover:text-[#ff6801] rounded transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </td>
-              </tr>
-
-              {/* Row 4 */}
-              <tr className="hover:bg-[#f9f9f9] transition-colors group">
-                <td className="py-3.5 px-4 font-bold text-[#1a1c1c]">#CH-8890</td>
-                <td className="py-3.5 px-4">Bomba de Concreto B-450</td>
-                <td className="py-3.5 px-4 text-[#54595F]">15 Out 2023, 11:20</td>
-                <td className="py-3.5 px-4">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass('Concluído')}`}>
-                    Concluído
-                  </span>
-                </td>
-                <td className="py-3.5 px-4 text-right">
-                  <button 
-                    onClick={() => onNavigate('chamados')}
-                    className="p-1 text-[#54595F] hover:text-[#ff6801] rounded transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                    <td className="py-3.5 px-4 font-bold text-[#1a1c1c]">{item.codigo}</td>
+                    <td className="py-3.5 px-4">{item.referencia}</td>
+                    <td className="py-3.5 px-4 text-[#54595F]">{item.dataLabel}</td>
+                    <td className="py-3.5 px-4">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${getStatusBadgeClass(item.status)}`}>
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <ChevronRight className="w-5 h-5 inline-block text-[#54595F] group-hover:text-[#ff6801] group-hover:translate-x-0.5 transition-all" />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="p-10 text-center">
+            <Clock className="w-10 h-10 text-[#54595F] mx-auto opacity-40" />
+            <h3 className="text-sm font-bold text-[#1a1c1c] mt-3">Nenhuma atividade recente</h3>
+            <p className="text-xs text-[#54595F] mt-1">
+              Chamados e orçamentos da sua conta aparecem aqui assim que forem abertos.
+            </p>
+          </div>
+        )}
       </section>
     </div>
   );
