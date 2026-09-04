@@ -27,6 +27,8 @@ export function saveReadIds(ids: Set<string>) {
 }
 
 export async function fetchAtualizacoes(): Promise<Atualizacao[]> {
+  if (!supabase) throw new Error('Supabase não configurado (ver src/lib/supabase.ts).');
+
   const { data, error } = await supabase
     .from('client_announcements')
     .select('id, titulo, conteudo, created_at')

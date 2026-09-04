@@ -17,8 +17,8 @@ function formatBytes(bytes: number | null): string {
   return `${mb.toFixed(1)} MB`;
 }
 
-function mapRow(row: ManualRow): Manual {
-  const { data } = supabase.storage.from('manuais').getPublicUrl(row.storage_path);
+function mapRow(row: ManualRow, client: NonNullable<typeof supabase>): Manual {
+  const { data } = client.storage.from('manuais').getPublicUrl(row.storage_path);
   return {
     id: row.id,
     titulo: row.titulo,
@@ -31,11 +31,13 @@ function mapRow(row: ManualRow): Manual {
 }
 
 export async function fetchManuais(): Promise<Manual[]> {
+  if (!supabase) throw new Error('Supabase não configurado (ver src/lib/supabase.ts).');
+
   const { data, error } = await supabase
     .from('manuals')
     .select('id, titulo, descricao, modelo_compativel, categoria, storage_path, tamanho_bytes')
     .order('titulo', { ascending: true });
 
   if (error) throw error;
-  return (data as ManualRow[]).map(mapRow);
+  return (data as ManualRow[]).map((row) => mapRow(row, supabase));
 }
