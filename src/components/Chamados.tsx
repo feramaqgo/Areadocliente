@@ -123,11 +123,17 @@ export default function Chamados({
     }
   };
 
-  const getUrgencyBadge = (urgency: string) => {
-    return urgency === 'Urgente'
-      ? 'bg-red-100 text-red-700 font-extrabold uppercase text-[10px] px-2 py-0.5 rounded border border-red-200'
-      : 'bg-slate-100 text-[#54595F] font-bold text-[10px] px-2 py-0.5 rounded border border-slate-200';
-  };
+  const renderUrgencyBadge = (urgency: string) => (
+    <span
+      className={
+        urgency === 'Urgente'
+          ? 'bg-red-100 text-red-700 font-extrabold uppercase text-[10px] px-2 py-0.5 rounded border border-red-200'
+          : 'bg-slate-100 text-[#54595F] font-bold text-[10px] px-2 py-0.5 rounded border border-slate-200'
+      }
+    >
+      {urgency}
+    </span>
+  );
 
   // If showing new call screen
   if (currentRoute === 'chamados-novo') {
@@ -347,7 +353,7 @@ export default function Chamados({
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${getStatusBadge(activeTicket.status)}`}>
                   {activeTicket.status}
                 </span>
-                {getUrgencyBadge(activeTicket.urgencia)}
+                {renderUrgencyBadge(activeTicket.urgencia)}
               </div>
               <h1 className="text-xl font-headline font-extrabold text-[#1a1c1c] mt-0.5">{activeTicket.titulo}</h1>
             </div>
@@ -603,12 +609,12 @@ export default function Chamados({
               className="bg-white p-5 rounded-xl border border-[#eeeeee] hover:border-[#ff6801]/30 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
             >
               <div className="flex justify-between items-start gap-4">
-                <span className="text-xs font-bold text-[#ff6801] font-mono">{c.codigo}</span>
+                <span className="text-xs font-bold text-[#ff6801] font-mono whitespace-nowrap">{c.codigo}</span>
                 <div className="flex flex-col items-end gap-1 shrink-0">
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase ${getStatusBadge(c.status)}`}>
                     {c.status}
                   </span>
-                  {getUrgencyBadge(c.urgencia)}
+                  {renderUrgencyBadge(c.urgencia)}
                 </div>
               </div>
 
